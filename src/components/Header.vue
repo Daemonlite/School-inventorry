@@ -8,6 +8,7 @@ const userInitials = ref('')
 // Mock user data
 // Improved initials logic
 const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : {}
+console.log(`User: ${JSON.stringify(user)}`)
 
 console.log(user)
 

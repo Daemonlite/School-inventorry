@@ -14,7 +14,9 @@ const menuItems = [
 ]
 
 const handleLogout = () => {
-  localStorage.removeItem('isLoggedIn')
+  console.log('Logging out...')
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
   router.push('/login')
 }
 </script>

@@ -49,26 +49,20 @@ const handleLogin = async (e) => {
       password: password.value
     })
     
+    console.log(`Login response: ${JSON.stringify(response.data)}`)
 
-    if (response.success) {
-      alert('Login successful!')
-      localStorage.setItem('token', response.token)
-      localStorage.setItem('user', JSON.stringify(response.user))
+    if (response.data.success) {
+      localStorage.setItem('token', response.data.token)
+      localStorage.setItem('user', JSON.stringify(response.data.user))
       
-      if (rememberMe.value) {
-        localStorage.setItem('rememberMe', 'true')
-      } else {
-        localStorage.removeItem('rememberMe')
-      }
-      
-      router.push('/dashboard')
+      router.push("/")
+      console.log("Login successful")
     }else {
-      alert('Login failed. Please try again.')
-      errors.value.submit = response.message
+      errors.value.submit = response.data.message
     }
     
   } catch (error) {
-    errors.value.submit = error.message || 'Login failed. Please try again.'
+    errors.value.submit = error.response.data.message|| 'Login failed. Please try again.'
   } finally {
     isLoading.value = false
   }
@@ -141,12 +135,7 @@ const handleLogin = async (e) => {
             </div>
 
             <div>
-              <div class="flex items-center justify-between mb-2">
-                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                <router-link to="/forgot-password" class="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
-                  Forgot password?
-                </router-link>
-              </div>
+              
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
