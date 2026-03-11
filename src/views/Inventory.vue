@@ -41,12 +41,21 @@ const outOfStockItems = computed(() => products.value.filter(p => p.quantity ===
 // Search functionality
 const searchQuery = ref('')
 
+const selectedCategory = ref("All Categories")
+
 const filteredProducts = computed(() => {
-  if (!searchQuery.value) return products.value
-  return products.value.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    product.category?.name?.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
+  return products.value.filter(product => {
+    const matchesSearch =
+      !searchQuery.value ||
+      product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      product.category?.name?.toLowerCase().includes(searchQuery.value.toLowerCase())
+
+    const matchesCategory =
+      selectedCategory.value === "All Categories" ||
+      product.category?._id === selectedCategory.value
+
+    return matchesSearch && matchesCategory
+  })
 })
 
 // Modal states
@@ -259,7 +268,7 @@ onMounted(() => {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <select class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            <select v-model="selectedCategory" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
               <option>All Categories</option>
               <option v-for="category in categories" :key="category._id" :value="category._id">
                   {{ category.name }}

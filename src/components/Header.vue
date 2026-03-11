@@ -5,8 +5,6 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 const userInitials = ref('')
 
-// Mock user data
-// Improved initials logic
 const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : {}
 console.log(`User: ${JSON.stringify(user)}`)
 
@@ -17,7 +15,6 @@ userInitials.value = user.name
   : '??' 
 
 
-const notifications = ref(3) // Example count
 </script>
 
 <template>
