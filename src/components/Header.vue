@@ -30,17 +30,7 @@ const notifications = ref(3) // Example count
 
 
     <div class="flex items-center space-x-5">
-      <button class="relative p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-full transition-all">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-        </svg>
-        <span v-if="notifications > 0" class="absolute top-1.5 right-1.5 flex h-4 w-4">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 text-[10px] text-white items-center justify-center font-bold">
-            {{ notifications }}
-          </span>
-        </span>
-      </button>
+
 
       <div class="h-8 w-px bg-gray-200"></div>
 
