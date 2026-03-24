@@ -181,20 +181,10 @@ const handleLogin = async (e) => {
             </button>
           </form>
 
-          <div class="mt-8 pt-6 border-t border-gray-100 text-center">
-            <p class="text-gray-600">
-              Don't have an account?
-              <router-link to="/signup" class="font-medium text-emerald-600 hover:text-emerald-700 ml-1">
-                Sign up now
-              </router-link>
-            </p>
-          </div>
+          
         </div>
 
         <footer class="mt-auto pt-8 text-center text-gray-500 text-xs">
-          <p>By signing in, you agree to our 
-            <a href="#" class="text-emerald-600">Terms</a> and <a href="#" class="text-emerald-600">Privacy</a>
-          </p>
           <p class="mt-2">© 2026 Prescrow.com</p>
         </footer>
       </div>
