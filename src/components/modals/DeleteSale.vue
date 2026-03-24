@@ -1,5 +1,5 @@
 <script setup>
-import { Transition } from 'vue' // Ensuring Transition is explicitly imported
+import { Transition } from 'vue' 
 
 const props = defineProps({
   show: Boolean,

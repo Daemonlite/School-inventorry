@@ -228,7 +228,7 @@ const isSameWeek = (date) => {
   return d >= startOfWeek && d <= today
 }
 
-// 🔑 ALWAYS use fallback if total is 0 or missing
+
 const getSaleTotal = (sale) => {
   if (sale.total && sale.total > 0) return sale.total
   return (sale.product?.price || 0) * (sale.quantity || 0)
