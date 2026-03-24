@@ -6,6 +6,7 @@ import DeleteSale from "../components/modals/DeleteSale.vue";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const token = localStorage.getItem("token");
+const userData = JSON.parse(localStorage.getItem("user"));
 const headers = { Authorization: `Bearer ${token}` };
 // Available products from inventory
 const availableProducts = ref([]);
@@ -24,8 +25,16 @@ const sales = ref([]);
 
 const fetchSales = async () => {
   try {
-    const response = await axios.get(`${baseUrl}/sales`, { headers });
-    sales.value = response.data;
+    // const response = await axios.get(`${baseUrl}/sales`, { headers });
+
+    if (userData.role === "admin") {
+      const response = await axios.get(`${baseUrl}/sales`, { headers });
+      sales.value = response.data;
+    } else {
+      const response = await axios.get(`${baseUrl}/sales/user/${userData.userId}`, { headers });
+      sales.value = response.data;
+    }
+    
   } catch (error) {
     console.error("Error fetching sales:", error);
   }
@@ -594,7 +603,7 @@ onMounted(() => {
 
               <td class="px-6 py-4">
                 <div>
-                  <p class="text-sm text-gray-800">{{ sale.salesPerson.name }}</p>
+                  <p class="text-sm text-gray-800">{{ sale.salesPerson?.name }}</p>
                 </div>
               </td>
 

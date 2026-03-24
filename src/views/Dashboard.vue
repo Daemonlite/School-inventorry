@@ -1,356 +1,557 @@
+<script setup>
+import axios from 'axios'
+import { ref, onMounted, computed } from 'vue'
+import { Bar, Pie } from 'vue-chartjs'
+import { 
+  Chart as ChartJS, Title, Tooltip, Legend, BarElement, 
+  CategoryScale, LinearScale, ArcElement 
+} from 'chart.js'
+
+// Register Chart.js components
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement)
+
+// Configuration
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+const getAuthHeaders = () => ({
+  Authorization: `Bearer ${localStorage.getItem('token')}`
+})
+
+// State
+const dashboardData = ref(null)
+const isLoading = ref(true)
+const error = ref(null)
+
+// Methods
+const fetchDashboardData = async () => {
+  error.value = null
+  isLoading.value = true
+  
+  try {
+    const response = await axios.get(`${API_BASE_URL}/sales/dashboard`, {
+      headers: getAuthHeaders()
+    })
+    dashboardData.value = response.data
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to load dashboard data'
+    console.error('Dashboard fetch error:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Formatting utilities
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2
+  }).format(value || 0)
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return '—'
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
+}
+
+// Chart data
+const barChartData = computed(() => {
+  const categories = dashboardData.value?.chartsData?.inventoryByCategory || []
+  return {
+    labels: categories.map(item => item.category),
+    datasets: [{
+      label: 'Products',
+      data: categories.map(item => item.totalProducts),
+      backgroundColor: '#10b981',
+      borderRadius: 6,
+      barPercentage: 0.7
+    }]
+  }
+})
+
+const pieChartData = computed(() => {
+  const stock = dashboardData.value?.chartsData?.stockStatus || {}
+  return {
+    labels: ['In Stock', 'Low Stock', 'Out of Stock'],
+    datasets: [{
+      data: [stock.inStock || 0, stock.lowStock || 0, stock.outOfStock || 0],
+      backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+      borderWidth: 0
+    }]
+  }
+})
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'bottom',
+      labels: {
+        usePointStyle: true,
+        boxWidth: 8,
+        font: { size: 12 }
+      }
+    },
+    tooltip: {
+      callbacks: {
+        label: (context) => `${context.label}: ${context.raw.toLocaleString()}`
+      }
+    }
+  }
+}
+
+// Lifecycle
+onMounted(fetchDashboardData)
+</script>
+
 <template>
-  <div class="space-y-6">
-    <!-- Welcome Section -->
-    <div class="flex justify-between items-center">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-800">Inventory Dashboard</h1>
-        <p class="text-gray-600 mt-1">Welcome back! Here's what's happening with your inventory today.</p>
-      </div>
-      <div class="flex space-x-3">
-        <button class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors flex items-center">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          Export
-        </button>
-        <button class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          Add Product
-        </button>
-      </div>
+  <div class="dashboard-container">
+    <!-- Loading State -->
+    <div v-if="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p class="loading-text">Loading dashboard...</p>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <!-- Total Products Card -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600">Total Products</p>
-            <p class="text-2xl font-bold text-gray-800 mt-2">2,345</p>
-            <p class="text-xs text-green-600 mt-2 flex items-center">
-              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-              </svg>
-              +12% from last month
-            </p>
-          </div>
-          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <!-- Low Stock Card -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600">Low Stock Items</p>
-            <p class="text-2xl font-bold text-gray-800 mt-2">23</p>
-            <p class="text-xs text-red-600 mt-2 flex items-center">
-              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-              </svg>
-              +5 from yesterday
-            </p>
-          </div>
-          <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <!-- Total Value Card -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600">Inventory Value</p>
-            <p class="text-2xl font-bold text-gray-800 mt-2">$124,567</p>
-            <p class="text-xs text-green-600 mt-2 flex items-center">
-              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-              </svg>
-              +8.2% increase
-            </p>
-          </div>
-          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <!-- Monthly Sales Card -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600">Monthly Sales</p>
-            <p class="text-2xl font-bold text-gray-800 mt-2">1,432</p>
-            <p class="text-xs text-green-600 mt-2 flex items-center">
-              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-              </svg>
-              +23.5% this week
-            </p>
-          </div>
-          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-        </div>
-      </div>
+    <!-- Error State -->
+    <div v-else-if="error" class="error-state">
+      <div class="error-icon">⚠️</div>
+      <h3 class="error-title">Unable to Load Dashboard</h3>
+      <p class="error-message">{{ error }}</p>
+      <button @click="fetchDashboardData" class="retry-button">Try Again</button>
     </div>
 
-    <!-- Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Bar Chart - Category Distribution -->
-      <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div class="flex justify-between items-center mb-6">
-          <div>
-            <h3 class="text-lg font-semibold text-gray-800">Inventory by Category</h3>
-            <p class="text-sm text-gray-600 mt-1">Product distribution across categories</p>
-          </div>
-          <select class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-            <option>This Month</option>
-            <option>Last Month</option>
-            <option>This Quarter</option>
-          </select>
-        </div>
-        
-        <div class="h-64 flex items-end justify-between space-x-4">
-          <div class="flex-1 flex flex-col items-center">
-            <div class="w-full bg-green-100 rounded-t-lg relative group" style="height: 140px;">
-              <div class="absolute inset-0 bg-green-500 rounded-t-lg opacity-0 group-hover:opacity-10 transition-opacity"></div>
-            </div>
-            <span class="text-xs text-gray-600 mt-2">Electronics</span>
-            <span class="text-sm font-semibold text-gray-800">856</span>
-          </div>
-          <div class="flex-1 flex flex-col items-center">
-            <div class="w-full bg-green-100 rounded-t-lg relative group" style="height: 180px;">
-              <div class="absolute inset-0 bg-green-500 rounded-t-lg opacity-0 group-hover:opacity-10 transition-opacity"></div>
-            </div>
-            <span class="text-xs text-gray-600 mt-2">Clothing</span>
-            <span class="text-sm font-semibold text-gray-800">1,234</span>
-          </div>
-          <div class="flex-1 flex flex-col items-center">
-            <div class="w-full bg-green-100 rounded-t-lg relative group" style="height: 100px;">
-              <div class="absolute inset-0 bg-green-500 rounded-t-lg opacity-0 group-hover:opacity-10 transition-opacity"></div>
-            </div>
-            <span class="text-xs text-gray-600 mt-2">Food</span>
-            <span class="text-sm font-semibold text-gray-800">567</span>
-          </div>
-          <div class="flex-1 flex flex-col items-center">
-            <div class="w-full bg-green-100 rounded-t-lg relative group" style="height: 160px;">
-              <div class="absolute inset-0 bg-green-500 rounded-t-lg opacity-0 group-hover:opacity-10 transition-opacity"></div>
-            </div>
-            <span class="text-xs text-gray-600 mt-2">Furniture</span>
-            <span class="text-sm font-semibold text-gray-800">892</span>
-          </div>
-          <div class="flex-1 flex flex-col items-center">
-            <div class="w-full bg-green-100 rounded-t-lg relative group" style="height: 120px;">
-              <div class="absolute inset-0 bg-green-500 rounded-t-lg opacity-0 group-hover:opacity-10 transition-opacity"></div>
-            </div>
-            <span class="text-xs text-gray-600 mt-2">Books</span>
-            <span class="text-sm font-semibold text-gray-800">678</span>
-          </div>
-        </div>
-
-        <!-- Bar Chart Legend -->
-        <div class="flex items-center justify-center mt-6 space-x-4">
-          <div class="flex items-center">
-            <div class="w-3 h-3 bg-green-500 rounded-sm mr-2"></div>
-            <span class="text-xs text-gray-600">Current Stock</span>
-          </div>
-          <div class="flex items-center">
-            <div class="w-3 h-3 bg-gray-300 rounded-sm mr-2"></div>
-            <span class="text-xs text-gray-600">Minimum Required</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pie Chart - Stock Status -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-6">Stock Status</h3>
-        
-        <div class="relative h-48 w-48 mx-auto">
-          <!-- Simple Pie Chart Representation -->
-          <svg viewBox="0 0 100 100" class="transform -rotate-90">
-            <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" stroke-width="20"/>
-            <circle cx="50" cy="50" r="40" fill="none" stroke="#22c55e" stroke-width="20" stroke-dasharray="251.2" stroke-dashoffset="62.8" stroke-linecap="round"/>
-            <circle cx="50" cy="50" r="40" fill="none" stroke="#eab308" stroke-width="20" stroke-dasharray="251.2" stroke-dashoffset="125.6" stroke-linecap="round"/>
-            <circle cx="50" cy="50" r="40" fill="none" stroke="#ef4444" stroke-width="20" stroke-dasharray="251.2" stroke-dashoffset="188.4" stroke-linecap="round"/>
-          </svg>
-        </div>
-
-        <!-- Pie Chart Legend -->
-        <div class="mt-6 space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center">
-              <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-              <span class="text-sm text-gray-600">In Stock</span>
-            </div>
-            <span class="text-sm font-semibold text-gray-800">65%</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center">
-              <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-              <span class="text-sm text-gray-600">Low Stock</span>
-            </div>
-            <span class="text-sm font-semibold text-gray-800">20%</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center">
-              <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-              <span class="text-sm text-gray-600">Out of Stock</span>
-            </div>
-            <span class="text-sm font-semibold text-gray-800">15%</span>
-          </div>
-        </div>
-
-        <!-- Stock Summary -->
-        <div class="mt-6 pt-6 border-t border-gray-100">
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-600">Total Items:</span>
-            <span class="font-semibold text-gray-800">4,227</span>
-          </div>
-          <div class="flex justify-between text-sm mt-2">
-            <span class="text-gray-600">Categories:</span>
-            <span class="font-semibold text-gray-800">12</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent Purchases Table -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <div class="flex justify-between items-center mb-6">
+    <!-- Dashboard Content -->
+    <div v-else-if="dashboardData" class="dashboard-content">
+      <!-- Header -->
+      <div class="dashboard-header">
         <div>
-          <h3 class="text-lg font-semibold text-gray-800">Recent Purchases</h3>
-          <p class="text-sm text-gray-600 mt-1">Latest 5 transactions in your inventory</p>
+          <h1 class="dashboard-title">Inventory Dashboard</h1>
+          <p class="dashboard-subtitle">Real-time overview of your stock and sales performance</p>
         </div>
-        <button class="text-sm text-green-600 hover:text-green-700 font-medium flex items-center">
-          View All
-          <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
+        <button @click="fetchDashboardData" class="refresh-button">
+          <span class="refresh-icon">↻</span>
+          Refresh
         </button>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead>
-            <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              <th class="px-6 py-3 bg-gray-50 rounded-l-lg">Product</th>
-              <th class="px-6 py-3 bg-gray-50">Category</th>
-              <th class="px-6 py-3 bg-gray-50">Quantity</th>
-              <th class="px-6 py-3 bg-gray-50">Unit Price</th>
-              <th class="px-6 py-3 bg-gray-50">Total</th>
-              <th class="px-6 py-3 bg-gray-50">Date</th>
-              <th class="px-6 py-3 bg-gray-50 rounded-r-lg">Status</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr v-for="(purchase, index) in recentPurchases" :key="index" class="hover:bg-gray-50 transition-colors">
-              <td class="px-6 py-4">
-                <div class="flex items-center">
-                  <div class="w-8 h-8 bg-gray-100 rounded-lg mr-3"></div>
-                  <div>
-                    <p class="text-sm font-medium text-gray-800">{{ purchase.product }}</p>
-                    <p class="text-xs text-gray-500">SKU: {{ purchase.sku }}</p>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 text-sm text-gray-600">{{ purchase.category }}</td>
-              <td class="px-6 py-4 text-sm text-gray-600">{{ purchase.quantity }}</td>
-              <td class="px-6 py-4 text-sm text-gray-600">${{ purchase.unitPrice }}</td>
-              <td class="px-6 py-4 text-sm font-medium text-gray-800">${{ purchase.total }}</td>
-              <td class="px-6 py-4 text-sm text-gray-600">{{ purchase.date }}</td>
-              <td class="px-6 py-4">
-                <span :class="[
-                  'px-2 py-1 text-xs font-medium rounded-full',
-                  purchase.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-                  purchase.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                  'bg-blue-100 text-blue-700'
-                ]">
-                  {{ purchase.status }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-info">
+            <p class="stat-label">Total Products</p>
+            <p class="stat-value">{{ dashboardData.cardsData?.totalProducts?.toLocaleString() || 0 }}</p>
+          </div>
+          <div class="stat-icon stat-icon-green">📦</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <p class="stat-label">Low Stock Items</p>
+            <p class="stat-value stat-value-warning">{{ dashboardData.cardsData?.lowStockProducts || 0 }}</p>
+          </div>
+          <div class="stat-icon stat-icon-orange">⚠️</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <p class="stat-label">Inventory Value</p>
+            <p class="stat-value">{{ formatCurrency(dashboardData.cardsData?.inventoryValue) }}</p>
+          </div>
+          <div class="stat-icon stat-icon-blue">💰</div>
+        </div>
       </div>
 
-      <!-- Table Footer -->
-      <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-        <p class="text-sm text-gray-600">Showing 5 of 24 purchases</p>
-        <div class="flex space-x-2">
-          <button class="px-3 py-1 border border-gray-200 rounded text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50" disabled>Previous</button>
-          <button class="px-3 py-1 border border-gray-200 rounded text-sm text-gray-600 hover:bg-gray-50">Next</button>
+      <!-- Charts Row -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3 class="chart-title">Products by Category</h3>
+          <div class="chart-container">
+            <Bar :data="barChartData" :options="chartOptions" />
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h3 class="chart-title">Stock Distribution</h3>
+          <div class="chart-container">
+            <Pie :data="pieChartData" :options="chartOptions" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Sales Table -->
+      <div class="table-card">
+        <div class="table-header">
+          <h3 class="table-title">Recent Sales</h3>
+          <span class="table-badge">{{ dashboardData.cardsData?.recentSales?.length || 0 }} transactions</span>
+        </div>
+        
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Customer</th>
+                <th>Total</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="sale in dashboardData.cardsData?.recentSales" :key="sale._id">
+                <td class="product-cell">{{ sale.product?.name || '—' }}</td>
+                <td>{{ sale.customer?.split(' - ')[0] || '—' }}</td>
+                <td class="amount-cell">{{ formatCurrency(sale.total) }}</td>
+                <td class="date-cell">{{ formatDate(sale.saleDate) }}</td>
+              </tr>
+              <tr v-if="!dashboardData.cardsData?.recentSales?.length">
+                <td colspan="4" class="empty-state-cell">No recent sales data available</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-const recentPurchases = [
-  {
-    product: 'Wireless Headphones',
-    sku: 'WH-001',
-    category: 'Electronics',
-    quantity: 50,
-    unitPrice: '79.99',
-    total: '3,999.50',
-    date: '2024-01-15',
-    status: 'Delivered'
-  },
-  {
-    product: 'Cotton T-Shirt',
-    sku: 'CT-023',
-    category: 'Clothing',
-    quantity: 200,
-    unitPrice: '12.99',
-    total: '2,598.00',
-    date: '2024-01-14',
-    status: 'Delivered'
-  },
-  {
-    product: 'Office Chair',
-    sku: 'OC-089',
-    category: 'Furniture',
-    quantity: 15,
-    unitPrice: '199.99',
-    total: '2,999.85',
-    date: '2024-01-14',
-    status: 'Pending'
-  },
-  {
-    product: 'Coffee Beans',
-    sku: 'CB-456',
-    category: 'Food',
-    quantity: 100,
-    unitPrice: '8.49',
-    total: '849.00',
-    date: '2024-01-13',
-    status: 'Processing'
-  },
-  {
-    product: 'JavaScript Book',
-    sku: 'BK-789',
-    category: 'Books',
-    quantity: 75,
-    unitPrice: '34.99',
-    total: '2,624.25',
-    date: '2024-01-13',
-    status: 'Delivered'
+<style scoped>
+/* Container */
+.dashboard-container {
+  min-height: 100vh;
+  background: #f9fafb;
+  padding: 2rem;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #10b981;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 1rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Error State */
+.error-state {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 1rem;
+  max-width: 400px;
+  margin: 2rem auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.error-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.error-message {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.retry-button {
+  padding: 0.5rem 1rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.2s;
+}
+
+.retry-button:hover {
+  background: #059669;
+}
+
+/* Dashboard Content */
+.dashboard-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dashboard-title {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-subtitle {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.refresh-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.refresh-button:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.refresh-icon {
+  font-size: 1rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f3f4f6;
+  transition: box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.stat-value-warning {
+  color: #f59e0b;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  font-size: 1.5rem;
+}
+
+.stat-icon-green {
+  background: #ecfdf5;
+}
+
+.stat-icon-orange {
+  background: #fffbeb;
+}
+
+.stat-icon-blue {
+  background: #eff6ff;
+}
+
+/* Charts Grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.chart-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid #f3f4f6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.chart-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1.25rem;
+}
+
+.chart-container {
+  height: 280px;
+  position: relative;
+}
+
+/* Table Card */
+.table-card {
+  background: white;
+  border-radius: 1rem;
+  border: 1px solid #f3f4f6;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.table-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.table-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.table-badge {
+  padding: 0.25rem 0.75rem;
+  background: #f3f4f6;
+  border-radius: 2rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 1rem 1.5rem;
+  background: #f9fafb;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.data-table td {
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  color: #374151;
+  border-bottom: 1px solid #f9fafb;
+}
+
+.data-table tr:hover td {
+  background: #fafafa;
+}
+
+.product-cell {
+  font-weight: 500;
+  color: #111827;
+}
+
+.amount-cell {
+  font-weight: 600;
+  color: #111827;
+}
+
+.date-cell {
+  color: #6b7280;
+}
+
+.empty-state-cell {
+  text-align: center;
+  padding: 3rem !important;
+  color: #9ca3af;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
   }
-]
-</script>
+  
+  .dashboard-title {
+    font-size: 1.5rem;
+  }
+  
+  .stats-grid {
+    gap: 1rem;
+  }
+  
+  .charts-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .chart-container {
+    height: 240px;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 0.75rem 1rem;
+  }
+}
+</style>
