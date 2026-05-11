@@ -42,7 +42,9 @@ const defaultForm = () => ({
   description: '',
   category: '',
   price: '',
-  stock: ''
+  stock: '',
+  minQuantity: '',
+  expirationDate: ''
 })
 
 const productForm = ref(defaultForm())
@@ -54,7 +56,9 @@ watch(() => props.editingProduct, (product) => {
       description: product.description ?? '',
       category: product.category ?? '',
       price: product.price ?? '',
-      stock: product.stock ?? ''
+      stock: product.stock ?? '',
+      minQuantity: product.minQuantity ?? '',
+      expirationDate: product.expirationDate ?? ''
     }
   } else {
     productForm.value = defaultForm()
@@ -76,8 +80,12 @@ const saveProduct = async () => {
       description: productForm.value.description,
       category: productForm.value.category,
       price: parseFloat(productForm.value.price),
-      quantity: parseInt(productForm.value.stock)
+      quantity: parseInt(productForm.value.stock),
+      minQuantity: parseInt(productForm.value.minQuantity),
+      expirationDate: productForm.value.expirationDate
     }
+
+    console.log(`payload: ${JSON.stringify(payload)}`)
 
     let response
 
@@ -237,6 +245,47 @@ onMounted(() => {
               </div>
             </div>
 
+            <!-- Minimum quantity and expieration date -->
+
+            <div class="grid grid-cols-2 gap-3">
+              
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                  Minimum Quanity <span class="text-red-400">*</span>
+                </label>
+                <div class="relative">
+                  <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">$</span>
+                  <input
+                    v-model="productForm.minQuantity"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    required
+                    placeholder="0.00"
+                    class="w-full pl-7 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent focus:bg-white transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+                  Expiration Date
+                </label>
+                <div class="relative">
+                  <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10" />
+                    </svg>
+                  </span>
+                  <input
+                    v-model="productForm.expirationDate"
+                    type="date"
+                    class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent focus:bg-white transition-all"
+                  />
+                </div>
+              </div>
+              </div>
+              
           </div>
 
           <!-- Footer Actions -->

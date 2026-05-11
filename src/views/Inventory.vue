@@ -78,7 +78,9 @@ const openEditModal = (product) => {
     description: product.description,
     category: product.category._id,
     price: product.price,
-    stock: product.quantity
+    stock: product.quantity,
+    minQuantity: product.minQuantity,
+    expirationDate: product.expirationDate
   }
   showProductModal.value = true
 }
@@ -135,6 +137,16 @@ const getCategoryIcon = (category) => {
   }
   return icons[category] || 'M4 7h16M4 12h16M4 17h16'
 }
+
+const formatDate = (date) => {
+  if (!date) return "";
+
+  return new Date(date).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
 
 onMounted(() => {
   fetchProducts(),
@@ -286,12 +298,15 @@ onMounted(() => {
               <th class="px-6 py-3">Category</th>
               <th class="px-6 py-3">Price</th>
               <th class="px-6 py-3">Stock</th>
-              <th class="px-6 py-3">Status</th>
+               <th class="px-6 py-3">Status</th>
+              <th class="px-6 py-3">Min. Quantity</th>
+              <th class="px-6 py-3">Expiry Date</th>
+             
               <th class="px-6 py-3">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
-            <tr v-for="product in filteredProducts" :key="product.id" class="hover:bg-gray-50 transition-colors">
+            <tr v-for="product in filteredProducts" :key="product._id" class="hover:bg-gray-50 transition-colors">
               <td class="px-6 py-4">
                 <div class="flex items-center">
                   <div class="w-10 h-10 bg-gray-100 rounded-lg mr-3 flex items-center justify-center">
@@ -322,6 +337,18 @@ onMounted(() => {
                   {{ product.quantity > 20 ? 'In Stock' : product.quantity > 0 ? 'Low Stock' : 'Out of Stock' }}
                 </span>
               </td>
+              
+
+              <td class="px-6 py-4 text-sm text-gray-600">{{ product.minQuantity }}</td>
+              <td class="px-6 py-4 text-sm text-gray-600">{{ formatDate(product.expirationDate)}}</td>
+              <td class="px-6 py-4">
+                <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                  Active
+                </span>
+              </td>
+
+
+
               <td class="px-6 py-4">
                 <div class="flex items-center space-x-2">
                   <button

@@ -160,10 +160,7 @@ const handleLogin = async (e) => {
               <p v-if="errors.password" class="mt-2 text-sm text-red-600">{{ errors.password }}</p>
             </div>
 
-            <div class="flex items-center">
-              <input id="remember-me" v-model="rememberMe" type="checkbox" class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-emerald-300 rounded" />
-              <label for="remember-me" class="ml-2 block text-sm text-gray-700">Remember me</label>
-            </div>
+
 
             <button
               type="submit"
@@ -183,10 +180,6 @@ const handleLogin = async (e) => {
 
           
         </div>
-
-        <footer class="mt-auto pt-8 text-center text-gray-500 text-xs">
-          <p class="mt-2">© 2026 Prescrow.com</p>
-        </footer>
       </div>
     </main>
   </div>
