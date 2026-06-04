@@ -32,6 +32,7 @@ const newThisMonth = computed(() => {
 const activeCategories = computed(() => categories.value.filter(cat => cat.status === 'Active').length)
 const totalProductsInCategories = computed(() => categories.value.reduce((sum, cat) => sum + cat.productCount, 0))
 const emptyCategories = computed(() => categories.value.filter(cat => cat.productCount === 0).length)
+const filledCategories = computed(() => categories.value.filter(cat => cat.productCount > 0).length)
 
 const searchQuery = ref('')
 const statusFilter = ref('all')
@@ -92,6 +93,7 @@ const openEditModal = (category) => {
 }
 
 const closeModal = () => {
+  categoryForm.value = { name: '', description: '', colorTheme: 'green', status: 'Active' }
   showCategoryModal.value = false
   editingCategory.value = null
 }
@@ -119,6 +121,8 @@ const saveCategory = async (formData) => {
         { headers }
       )
     }
+    categoryForm.name = ''
+    categoryForm.description = ''
     await fetchCategories()
   } catch (error) {
     console.error('Error saving category:', error)
@@ -126,6 +130,7 @@ const saveCategory = async (formData) => {
     isLoading.value = false
     editingCategory.value = null
     closeModal()
+
   }
 }
 
@@ -242,6 +247,19 @@ onMounted(() => {
           </div>
         </div>
       </div>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Categories With Products</p>
+            <p class="text-2xl font-bold text-gray-800 mt-2">{{ filledCategories }}</p>
+          </div>
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Categories Table -->
@@ -317,7 +335,7 @@ onMounted(() => {
                 </div>
               </td>
               <td class="px-6 py-4 text-right">
-                <span class="text-sm font-medium text-gray-800">${{ category.totalValue }}</span>
+                <span class="text-sm font-medium text-gray-800">₵{{ category.totalValue }}</span>
               </td>
               <td class="px-6 py-4">
                 <span :class="[

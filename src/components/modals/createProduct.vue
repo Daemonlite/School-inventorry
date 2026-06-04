@@ -208,10 +208,10 @@ onMounted(() => {
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                  Price (USD) <span class="text-red-400">*</span>
+                  Price (GHS) <span class="text-red-400">*</span>
                 </label>
                 <div class="relative">
-                  <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">$</span>
+                  <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">₵</span>
                   <input
                     v-model="productForm.price"
                     type="number"
@@ -254,7 +254,7 @@ onMounted(() => {
                   Minimum Quanity <span class="text-red-400">*</span>
                 </label>
                 <div class="relative">
-                  <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">$</span>
+                  
                   <input
                     v-model="productForm.minQuantity"
                     type="number"

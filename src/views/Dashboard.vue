@@ -43,7 +43,7 @@ const fetchDashboardData = async () => {
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'GHS',
     minimumFractionDigits: 2
   }).format(value || 0)
 }

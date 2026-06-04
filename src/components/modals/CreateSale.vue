@@ -132,7 +132,7 @@ const saveSale = () => {
               >
                 <option value="">Choose a product</option>
                 <option v-for="product in availableProducts" :key="product._id" :value="product._id">
-                  {{ product.name }} — ${{ product.price }} (Stock: {{ product.quantity }})
+                  {{ product.name }} — ₵{{ product.price }} (Stock: {{ product.quantity }})
                 </option>
               </select>
               <p v-if="selectedProduct && selectedProduct.stock < 10" class="mt-1.5 text-xs text-yellow-600 flex items-center gap-1">
@@ -162,7 +162,7 @@ const saveSale = () => {
               </div>
               <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                  Customer Email <span class="text-red-400">*</span>
+                  Customer Email 
                 </label>
                 <input
                   v-model="saleForm.customerEmail"
@@ -201,9 +201,7 @@ const saveSale = () => {
                 >
                   <option value="">Select method</option>
                   <option value="Cash">Cash</option>
-                  <option value="Credit Card">Credit Card</option>
-                  <option value="Debit Card">Debit Card</option>
-                  <option value="Mobile Payment">Mobile Payment</option>
+                  <option value="Mobile Payment">Mobile Money</option>
                 </select>
               </div>
             </div>
@@ -212,7 +210,7 @@ const saveSale = () => {
             <div class="p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
               <div class="flex justify-between items-center text-sm text-gray-600">
                 <span>Unit Price</span>
-                <span class="font-medium text-gray-800">${{ selectedProduct?.price ?? '0.00' }}</span>
+                <span class="font-medium text-gray-800">₵{{ selectedProduct?.price ?? '0.00' }}</span>
               </div>
               <div class="flex justify-between items-center text-sm text-gray-600 mt-2">
                 <span>Quantity</span>
@@ -220,7 +218,7 @@ const saveSale = () => {
               </div>
               <div class="flex justify-between items-center mt-3 pt-3 border-t border-emerald-200">
                 <span class="text-sm font-semibold text-gray-700">Total Amount</span>
-                <span class="text-lg font-bold text-emerald-600">${{ totalAmount }}</span>
+                <span class="text-lg font-bold text-emerald-600">₵{{ totalAmount }}</span>
               </div>
             </div>
 

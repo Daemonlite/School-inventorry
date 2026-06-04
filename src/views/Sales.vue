@@ -150,7 +150,7 @@ const saveSale = async (payload) => {
 
     } else {
       const response = await axios.post(`${baseUrl}/sales`, saleData, { headers })
-      sales.value.push(response.data)
+     fetchSales()
     }
 
     closeModal()
@@ -319,7 +319,7 @@ onMounted(() => {
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">Today's Sales</p>
-            <p class="text-2xl font-bold text-gray-800 mt-2">${{ todaysSalesTotal }}</p>
+            <p class="text-2xl font-bold text-gray-800 mt-2">₵{{ todaysSalesTotal }}</p>
             <p class="text-xs text-green-600 mt-2 flex items-center">
               <svg
                 class="w-3 h-3 mr-1"
@@ -334,7 +334,7 @@ onMounted(() => {
                   d="M5 10l7-7m0 0l7 7m-7-7v18"
                 />
               </svg>
-              +15% from yesterday
+
             </p>
           </div>
           <div
@@ -364,7 +364,7 @@ onMounted(() => {
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">Weekly Sales</p>
-            <p class="text-2xl font-bold text-gray-800 mt-2">${{ weeklySalesTotal }}</p>
+            <p class="text-2xl font-bold text-gray-800 mt-2">₵{{ weeklySalesTotal }}</p>
             <p class="text-xs text-blue-600 mt-2 flex items-center">
               <svg
                 class="w-3 h-3 mr-1"
@@ -379,7 +379,6 @@ onMounted(() => {
                   d="M5 10l7-7m0 0l7 7m-7-7v18"
                 />
               </svg>
-              +8.2% from last week
             </p>
           </div>
           <div
@@ -411,20 +410,7 @@ onMounted(() => {
             <p class="text-sm font-medium text-gray-600">Transactions</p>
             <p class="text-2xl font-bold text-gray-800 mt-2">{{ totalTransactions }}</p>
             <p class="text-xs text-purple-600 mt-2 flex items-center">
-              <svg
-                class="w-3 h-3 mr-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                />
-              </svg>
-              23 today
+            
             </p>
           </div>
           <div
@@ -454,22 +440,9 @@ onMounted(() => {
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">Avg. Order Value</p>
-            <p class="text-2xl font-bold text-gray-800 mt-2">${{ averageOrderValue }}</p>
+            <p class="text-2xl font-bold text-gray-800 mt-2">₵{{ averageOrderValue }}</p>
             <p class="text-xs text-green-600 mt-2 flex items-center">
-              <svg
-                class="w-3 h-3 mr-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 10l7-7m0 0l7 7m-7-7v18"
-                />
-              </svg>
-              +$5.20 vs last month
+
             </p>
           </div>
           <div
@@ -611,10 +584,10 @@ onMounted(() => {
                 {{ sale.quantity }}
               </td>
               <td class="px-6 py-4 text-sm text-gray-600">
-                ${{ sale.product.price }}
+                ₵{{ sale.product.price }}
               </td>
               <td class="px-6 py-4 text-sm font-medium text-gray-800">
-                ${{ sale.total }}
+                ₵{{ sale.total }}
               </td>
               <td class="px-6 py-4">
                 <span
